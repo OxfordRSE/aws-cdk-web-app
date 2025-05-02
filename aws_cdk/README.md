@@ -1,6 +1,7 @@
 # CDKDemo AWS CDK Infrastructure
 
 This directory (`aws_cdk/`) defines the AWS infrastructure needed to deploy the **CDKDemo** application using AWS CDK.
+It is designed to be an extendable template for deploying OxRSE projects to AWS.
 
 ## Stack description
 
@@ -47,45 +48,65 @@ The stack contains the following resources:
 
 ## Usage
 
-### Deploy a Stack
+### Bootstrap if necessary
+
+You may get errors running the below commands that tell you bootstrapping is required. 
+You can do that by:
 
 ```bash
-./cdk.sh deploy --profile matt-sso -c projectName=demo-app-staging -c deploymentDomain=staging.demo-app.example.com
+./cdk.sh bootstrap --profile sso -c skipDomainLookup=true
 ```
 
+### Deploy a Stack
+
+First, log into AWS using `aws configure sso` (actually anything that makes you an AWS profile will do fine, but this works for our SSO accounts).
+We'll assume you set the profile name to something like 'sso'.
+
+```bash
+./cdk.sh deploy --profile sso -c projectName=demo-app -c deploymentDomain=demo-app.oxrse.uk
+```
+
+If you've set up your `cdk.json` to include those values you can simply:
+
+```bash
+./cdk.sh deploy --profile sso
+```
+
+You will see that the required resources are collated and prepared for building. 
+You'll then be asked to acknowledge any new IAM permissions granted in the Stack.
+After that, the resources will build and you can see detailed progress in the CloudFormation AWS pages.
+
 _Note_: This command can take quite a long time. If it takes more than 30 minutes, something might be wrong.
+
+You can see progress in AWS by going to CloudFormation. 
+You can also halt the build there.
 
 ### Destroy a Stack
 
 Make sure you use the full dynamic stack name derived from `projectName`:
 
 ```bash
-./cdk.sh destroy demo-app-staging-Stack --profile matt-sso
+./cdk.sh destroy demo-app-Stack --profile sso
 ```
 
 _Note_: This command can take quite a long time. If it takes more than 30 minutes, something might be wrong.
 
+You can destroy resources from CloudFormation, too. 
+
+**Secrets will not be destroyed as part of the Stack.** 
+Destroy secrets manually if you're closing the project.
+
 ### Other Commands
 
 ```bash
-./cdk.sh synth --profile matt-sso -c projectName=demo-app-staging -c deploymentDomain=staging.demo-app.example.com
+./cdk.sh synth --profile sso -c projectName=demo-app-staging -c deploymentDomain=staging.demo-app.example.com
 ```
-
-
-## Notes
-
-- Secrets are managed automatically but require valid `FIGSHARE_CLIENT_ID` and `FIGSHARE_CLIENT_SECRET` values, either from context or environment variables.
-- Stack outputs will include important values like the deployed App URL.
-- Log groups are automatically assigned a retention policy (7 days for dev/staging, 365 days for production).
-- VPCs are configured without NAT gateways for cost efficiency.
-- Fargate tasks are set up with access to SecretsManager using a private VPC endpoint.
 
 ## Prerequisites
 
 - Run `aws sso login --profile your-profile` if using SSO.
 - Export your AWS_PROFILE if you are not using the `cdk.sh` wrapper.
 - Ensure you have valid AWS credentials locally.
-
 
 ---
 

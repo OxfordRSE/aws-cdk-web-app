@@ -17,9 +17,9 @@
     ]
   },
   "context": {
-    "projectName": "rainy-day",
-    "deploymentDomain": "rainy-day.oxrse.uk",
-    "catApiKey": "YOUR-REAL-API-KEY-HERE",
+    "projectName": "demo-app",
+    "deploymentDomain": "demo-app.oxrse.uk",
+    "catApiKey": "",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [
