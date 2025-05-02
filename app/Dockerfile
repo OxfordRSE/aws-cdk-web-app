@@ -11,7 +11,7 @@ RUN npm ci
 COPY tsconfig.json tailwind.config.ts postcss.config.mjs ./
 COPY next.config.ts ./
 COPY public ./public
-COPY prisma ./prisma
+COPY app/prisma ./prisma
 COPY src ./src
 
 # Compile next.config.ts
