@@ -8,17 +8,16 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # Copy source files needed for build
-COPY tsconfig.json tailwind.config.ts postcss.config.mjs ./
+COPY tsconfig.json tsconfig.build.json tailwind.config.ts postcss.config.mjs ./
 COPY next.config.ts ./
 COPY public ./public
-COPY app/prisma ./prisma
+COPY prisma ./prisma
 COPY src ./src
 
-# Compile next.config.ts
-RUN npx tsc next.config.ts --outDir . --moduleResolution bundler
+# Compile next.config.ts; Prisma init + seed scripts
+RUN npx tsc --project tsconfig.build.json
 
-# Compile Prisma init + seed scripts
-RUN npx tsc prisma/init.ts prisma/seed.ts --outDir prisma --moduleResolution node
+RUN npx prisma generate
 
 # Build Next.js app
 RUN npm run build
@@ -43,6 +42,10 @@ COPY --from=builder /app/next.config.js ./next.config.js
 COPY --from=builder /app/prisma/init.js ./prisma/init.js
 COPY --from=builder /app/prisma/seed.js ./prisma/seed.js
 COPY --from=builder /app/prisma/schema.prisma ./prisma/schema.prisma
+COPY --from=builder /app/prisma/migrations ./prisma/migrations
+
+# Generate Prisma Client
+RUN npx prisma generate
 
 EXPOSE 3000
 

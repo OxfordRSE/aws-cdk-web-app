@@ -173,8 +173,9 @@ export class CDKDemoStack extends Stack {
           memoryLimitMiB: 1024,
         },
     );
+
     this.taskDefinition.addContainer(`${projectName}-Container`, {
-      image: ecs.ContainerImage.fromAsset(".."),
+      image: ecs.ContainerImage.fromAsset("../app"),
       portMappings: [{ containerPort: 3000 }],
       secrets: includeSecrets? {
         NEXT_PUBLIC_CAT_API_KEY: ecs.Secret.fromSecretsManager(
@@ -182,6 +183,10 @@ export class CDKDemoStack extends Stack {
             "catAPIKey",
         ),
       } : undefined,
+      environment: {
+        // DATABASE_URL is inject as environment rather than by secret because AWS won't create the combined string, and Prisma won't work with component parts
+        DATABASE_URL: `postgresql://${this.dbSecret.secretValueFromJson('username').unsafeUnwrap()}:${this.dbSecret.secretValueFromJson('password').unsafeUnwrap()}@${this.db.dbInstanceEndpointAddress}:${this.db.dbInstanceEndpointPort}/${projectName.replace(/-/g, "_")}`
+      },
       logging: ecs.LogDriver.awsLogs({
         logGroup: new logs.LogGroup(this, `${projectName}-LogGroup`, {
           logGroupName: `/${projectName}/ecs`,
@@ -218,8 +223,6 @@ export class CDKDemoStack extends Stack {
     );
 
     // Connect with RDS
-    this.dbSecret.grantRead(this.taskDefinition.taskRole);
-    this.taskDefinition.defaultContainer?.addSecret('DATABASE_URL', ecs.Secret.fromSecretsManager(this.dbSecret));
     this.sgs.db.addIngressRule(
         this.fargateService.connections.securityGroups[0],
         ec2.Port.tcp(5432),

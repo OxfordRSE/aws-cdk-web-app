@@ -1,12 +1,14 @@
 // app/api/images/[id]/flag/route.ts
-import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient();
 
 export async function POST(
     _req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const { id } = params
+    const { id } = await params
 
     try {
         await prisma.captionedImage.update({

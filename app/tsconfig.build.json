@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".",
+    "module": "esnext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["next.config.ts", "prisma/init.ts", "prisma/seed.ts"]
+}
