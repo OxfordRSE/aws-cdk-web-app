@@ -1,0 +1,23 @@
+{
+  "name": "Rainy Day",
+  "dockerComposeFile": ["docker-compose.yml"],
+  "service": "app",
+  "workspaceFolder": "/workspaces/rainy-day",
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "prisma.prisma",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 5432],
+  "remoteEnv": {
+    "DATABASE_URL": "postgresql://postgres:postgres@db:5432/rainy-day"
+  }
+}
