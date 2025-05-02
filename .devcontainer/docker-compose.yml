@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - .:/workspaces/rainy-day
-    command: sleep infinity  # devcontainers override this
+    command: next dev -H 0.0.0.0  # devcontainers override this
   db:
     image: postgres:15
     restart: unless-stopped

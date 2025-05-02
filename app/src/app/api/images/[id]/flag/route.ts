@@ -12,7 +12,7 @@ export async function POST(
 
     try {
         await prisma.captionedImage.update({
-            where: { id },
+            where: { id, adminApproved: false },
             data: { flaggedAbusive: true },
         })
         return NextResponse.json({ success: true })

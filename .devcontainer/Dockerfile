@@ -9,4 +9,4 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 # Optional: set working directory
-WORKDIR /workspaces/rainy-day
+WORKDIR /workspaces/rainy-day/app

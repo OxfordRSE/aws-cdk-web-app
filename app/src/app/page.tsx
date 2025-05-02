@@ -1,48 +1,43 @@
 // app/page.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { AnimalCard } from '@/components/AnimalCard'
 import { AnimalModal } from '@/components/AnimalModal'
 import {Filter, SearchBar} from '@/components/SearchBar'
 import { CaptionedImage } from '@prisma/client'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 
 export default function Home() {
+    const [page, setPage] = useState(1)
+    const [hasMore, setHasMore] = useState(true)
+    const [perPage, setPerPage] = useState(12)
+
     const [images, setImages] = useState<CaptionedImage[]>([])
     const [filteredImages, setFilteredImages] = useState<CaptionedImage[]>([])
     const [filter, setFilter] = useState<Filter>({ query: '', animal: 'all' })
     const [modalAnimal, setModalAnimal] = useState<'cat' | 'dog' | 'random' | null>(null)
     const [searchKey, setSearchKey] = useState(0)
 
+    const fetchPage = useCallback(async (pageToFetch: number) => {
+        const res = await fetch(`/api/images?page=${pageToFetch}&perPage=${perPage}`)
+        const { images: newImages, total } = await res.json()
+
+        if (pageToFetch === 1) {
+            setImages(newImages)
+        } else {
+            setImages(prev => [...prev, ...newImages])
+        }
+
+        const maxPage = Math.ceil(total / perPage)
+        setHasMore(pageToFetch < maxPage)
+    }, [perPage])
+
     useEffect(() => {
-        const fetchAndUpdate = async () => {
-            if (modalAnimal) return
-            const res = await fetch('/api/images')
-            const data = await res.json() as CaptionedImage[]
-            const current_ids = images.map(i => i.id);
-            const new_data = data.filter(d => !current_ids.includes(d.id));
-            setImages([...images, ...new_data]);
-        }
-
-        // Fetch on focus
-        const handleFocus = () => {
-            fetchAndUpdate()
-        }
-
-        window.addEventListener('focus', handleFocus)
-
-        const interval = setInterval(fetchAndUpdate, 15_000)
-
-        if (!images.length) {
-            fetchAndUpdate()
-        }
-
-        return () => {
-            clearInterval(interval)
-            window.removeEventListener('focus', handleFocus)
-        }
-    }, [])
+        setPage(1)
+        fetchPage(1);
+    }, [perPage])
 
     useEffect(() => {
         const { query, animal } = filter
@@ -78,15 +73,50 @@ export default function Home() {
             </div>
 
             {modalAnimal && (
-                <AnimalModal
-                    animal={modalAnimal}
-                    onClose={() => setModalAnimal(null)}
-                    onSubmit={newImage => {
-                        setImages(prev => [newImage, ...prev])
-                        setSearchKey(prev => prev + 1) // force SearchBar to reset
-                    }}
-                />
+                <>
+                    <AnimalModal
+                        animal={modalAnimal}
+                        onClose={() => setModalAnimal(null)}
+                        onSubmit={newImage => {
+                            setImages(prev => [newImage, ...prev])
+                            setSearchKey(prev => prev + 1) // force SearchBar to reset
+                        }}
+                    />
+                </>
             )}
+            <div className="flex w-full justify-between items-center">
+                {hasMore && (
+                    <div className="text-center mt-6">
+                        <Button onClick={() => {
+                            const next = page + 1
+                            setPage(next)
+                            fetchPage(next)
+                        }}>
+                            Load more
+                        </Button>
+                    </div>
+                )}
+                <div className="flex items-center gap-2">
+                    <label htmlFor="perPage" className="text-sm text-gray-600">Images per page:</label>
+                    <Select
+                        value={perPage.toString()}
+                        onValueChange={(value) => {
+                            setPerPage(Number(value))
+                        }}
+                    >
+                        <SelectTrigger className="w-24">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {[12, 24, 48, 96].map(size => (
+                                <SelectItem key={size} value={size.toString()}>
+                                    {size}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
         </main>
     )
 }

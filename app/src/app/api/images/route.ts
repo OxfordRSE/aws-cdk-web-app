@@ -4,12 +4,23 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient();
 
-export async function GET() {
-    const images = await prisma.captionedImage.findMany({
-        where: { flaggedAbusive: false },
-        orderBy: { createdAt: 'desc' },
-    })
-    return NextResponse.json(images)
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const perPage = parseInt(searchParams.get('perPage') || '12')
+    const skip = (page - 1) * perPage
+
+    const [images, total] = await Promise.all([
+        prisma.captionedImage.findMany({
+            where: { flaggedAbusive: false },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: perPage,
+        }),
+        prisma.captionedImage.count({ where: { adminApproved: true } }),
+    ])
+
+    return NextResponse.json({ images, total, page, perPage })
 }
 
 export async function POST(req: Request) {

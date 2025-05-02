@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import {Dialog, DialogContent, DialogTitle} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -74,7 +74,7 @@ export function AnimalModal({
     return (
         <Dialog open onOpenChange={onClose}>
             <DialogContent className="max-w-md space-y-4">
-                <h2 className="text-xl font-bold">Add a Caption</h2>
+                <DialogTitle className="text-xl font-bold">Add a Caption</DialogTitle>
 
                 {imageUrl ? (
                     <img
