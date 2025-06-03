@@ -5,7 +5,7 @@ import {
   Duration,
   RemovalPolicy,
   Stack,
-  StackProps,
+  StackProps, Tags,
 } from "aws-cdk-lib";
 import { Construct } from "constructs";
 
@@ -87,6 +87,7 @@ export class CDKDemoStack extends Stack {
         },
       ],
     });
+    Tags.of(this.vpc).add("project-name", projectName);
 
     // --- Route53 ---
     this.zone = skipDomainLookup
@@ -103,6 +104,7 @@ export class CDKDemoStack extends Stack {
       domainName: deploymentDomain,
       validation: acm.CertificateValidation.fromDns(this.zone),
     });
+    Tags.of(this.cert).add("project-name", projectName);
 
     this.sgs = {
       alb: new ec2.SecurityGroup(this, `${projectName}-ALB-SG`, {
@@ -160,10 +162,10 @@ export class CDKDemoStack extends Stack {
       securityGroups: [this.sgs.db],
     });
 
-
     this.cluster = new ecs.Cluster(this, `${projectName}-Cluster`, {
       vpc: this.vpc,
     });
+    Tags.of(this.cluster).add("project-name", projectName);
 
     this.taskDefinition = new ecs.FargateTaskDefinition(
         this,

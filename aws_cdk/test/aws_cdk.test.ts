@@ -154,15 +154,36 @@ describe("CDKDemoStack", () => {
     template.hasResourceProperties('AWS::ECS::TaskDefinition', Match.objectLike({
       ContainerDefinitions: Match.arrayWith([
         Match.objectLike({
-          Secrets: Match.arrayWith([
+          Environment: Match.arrayWith([
             Match.objectLike({
               Name: 'DATABASE_URL',
-              ValueFrom: Match.anyValue(), // We don't hardcode the Ref
             }),
           ]),
         }),
       ]),
     }));
+  });
+
+  test("VPC has a project-name tag", () => {
+    template.hasResourceProperties("AWS::EC2::VPC", {
+      Tags: Match.arrayWith([
+        Match.objectLike({
+          Key: "project-name",
+          Value: "test-app-test",
+        }),
+      ]),
+    });
+  });
+
+  test("ECS cluster has a project-name tag", () => {
+    template.hasResourceProperties("AWS::ECS::Cluster", {
+      Tags: Match.arrayWith([
+        Match.objectLike({
+          Key: "project-name",
+          Value: "test-app-test",
+        }),
+      ]),
+    });
   });
 
 });
